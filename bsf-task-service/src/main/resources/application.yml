@@ -1,0 +1,19 @@
+server:
+  port: "\${SERVER_PORT:8080}"
+
+spring:
+  datasource:
+    initialization-mode: always
+    driver-class-name: org.postgresql.Driver
+    url: "\${DATASOURCE_URL:jdbc:postgresql://localhost:5432/db?currentSchema=bsf}"
+    username: "\${DATASOURCE_USERNAME:admin}"
+    password: "\${DATASOURCE_PASSWORD:password}"
+  jpa:
+    database: postgresql
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc.lob.non_contextual_creation: true
+  flyway:
+    schemas: bsf
+    baseline-on-migrate: true

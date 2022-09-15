@@ -1,0 +1,1 @@
+ALTER TABLE IF EXISTS bsf.account ADD COLUMN is_deleted boolean default false;
