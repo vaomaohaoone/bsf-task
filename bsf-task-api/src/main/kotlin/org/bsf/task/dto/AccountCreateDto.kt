@@ -9,7 +9,7 @@ import javax.validation.constraints.Min
 data class AccountCreateDto(
     @ApiModelProperty("Name of account", required = true)
     val accountName: String? = null,
-    @ApiModelProperty("Initial balance of account", required = true)
+    @ApiModelProperty("Initial balance of account (with kopecks)", required = true)
     @field:Min(value = 0)
     val initialSum: BigInteger? = null,
     @ApiModelProperty("User id, which linked to account", required = true)

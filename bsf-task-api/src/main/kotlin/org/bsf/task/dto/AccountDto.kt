@@ -11,7 +11,7 @@ data class AccountDto(
     var id: UUID? = null,
     @ApiModelProperty("Name of account")
     var accountName: String? = null,
-    @ApiModelProperty("Balance of account")
+    @ApiModelProperty("Balance of account (with kopecks)")
     var balanceSum: BigInteger? = null,
     @ApiModelProperty("User id, which linked to account")
     var userId: String? = null

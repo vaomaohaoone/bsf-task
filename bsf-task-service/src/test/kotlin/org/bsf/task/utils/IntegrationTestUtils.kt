@@ -1,6 +1,5 @@
 package org.bsf.task.utils
 
-import org.apache.commons.lang3.RandomStringUtils
 import org.bsf.task.entity.AccountEntity
 import org.bsf.task.entity.TransactionEntity
 import org.bsf.task.enums.TransactionType
@@ -34,10 +33,11 @@ class IntegrationTestUtils {
         )
 
     @Transactional
-    fun createAndSaveTransaction(receiverId: UUID,
-                                 senderId: UUID,
-                                 type: TransactionType,
-                                 sum: BigInteger
+    fun createAndSaveTransaction(
+        receiverId: UUID,
+        senderId: UUID,
+        type: TransactionType,
+        sum: BigInteger
     ): TransactionEntity {
         val receiver = accountRepository.findById(receiverId).get()
         val sender = accountRepository.findById(senderId).get()

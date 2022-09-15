@@ -5,7 +5,9 @@ import io.restassured.module.kotlin.extensions.Given
 import io.restassured.module.kotlin.extensions.Then
 import io.restassured.module.kotlin.extensions.When
 import org.bsf.task.AbstractIntegrationTest
+import org.bsf.task.dto.SearchCriteriaTransactionDto
 import org.bsf.task.dto.TransactionDto
+import org.bsf.task.dto.TransactionListDto
 import org.bsf.task.enums.TransactionType
 import org.bsf.task.utils.TestUtils.Companion.createTransactionCreateDto
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -13,6 +15,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import java.math.BigInteger
+import java.time.LocalDateTime
 
 internal class TransactionControllerTest : AbstractIntegrationTest() {
 
@@ -72,6 +75,267 @@ internal class TransactionControllerTest : AbstractIntegrationTest() {
         }
     }
 
+    @Test
+    fun `list transactions by receiverId sort by sum`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        val trans1 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        val trans2 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        val trans3 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(4000)
+        )
+        val trans4 =integrationTestUtils.createAndSaveTransaction(
+            receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(2000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            receiverId = firstAccount.id,
+            sortBy = SearchCriteriaTransactionDto.SortDto(
+                "sum", "DESC"
+            )
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(200)
+            val response = contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract()
+                .response()
+                .asString()
+            val actual = objectMapper.readValue<TransactionListDto>(response)
+            assertEquals(3, actual.rows.size)
+            assertEquals(trans2.id, actual.rows[0].id)
+            assertEquals(trans3.id, actual.rows[1].id)
+            assertEquals(trans1.id, actual.rows[2].id)
+            assertEquals(3, actual.totalRows)
+            assertEquals(1, actual.pagesCount)
+        }
+    }
 
+    @Test
+    fun `list transactions by senderId sort by date`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        val trans1 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        val trans2 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        val trans3 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(4000)
+        )
+        val trans4 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(2000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            senderId = thirdAccount.id,
+            sortBy = SearchCriteriaTransactionDto.SortDto(
+                "date", "ASC"
+            )
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(200)
+            val response = contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract()
+                .response()
+                .asString()
+            val actual = objectMapper.readValue<TransactionListDto>(response)
+            assertEquals(3, actual.rows.size)
+            assertEquals(trans2.id, actual.rows[0].id)
+            assertEquals(trans3.id, actual.rows[1].id)
+            assertEquals(trans4.id, actual.rows[2].id)
+            assertEquals(3, actual.totalRows)
+            assertEquals(1, actual.pagesCount)
+        }
+    }
+
+    @Test
+    fun `list transactions by transactionType with pagination sort by sum`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        val trans1 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        val trans2 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        val trans3 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(4000)
+        )
+        val trans4 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(2000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            transactionType = TransactionType.WITHDRAW,
+            page = SearchCriteriaTransactionDto.PageDto(
+                0, 2
+            ),
+            sortBy = SearchCriteriaTransactionDto.SortDto(
+                "sum", "DESC"
+            )
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(200)
+            val response = contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract()
+                .response()
+                .asString()
+            val actual = objectMapper.readValue<TransactionListDto>(response)
+            assertEquals(2, actual.rows.size)
+            assertEquals(trans2.id, actual.rows[0].id)
+            assertEquals(trans3.id, actual.rows[1].id)
+            assertEquals(3, actual.totalRows)
+            assertEquals(2, actual.pagesCount)
+        }
+    }
+
+    @Test
+    fun `list transactions by sum range sort by sum`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        val trans1 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        val trans2 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        val trans3 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(4000)
+        )
+        val trans4 = integrationTestUtils.createAndSaveTransaction(
+            receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(2000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            sum = SearchCriteriaTransactionDto.RangeDto(BigInteger.valueOf(2000), BigInteger.valueOf(3000)),
+            sortBy = SearchCriteriaTransactionDto.SortDto(
+                "sum", "DESC"
+            )
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(200)
+            val response = contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract()
+                .response()
+                .asString()
+            val actual = objectMapper.readValue<TransactionListDto>(response)
+            assertEquals(2, actual.rows.size)
+            assertEquals(trans1.id, actual.rows[0].id)
+            assertEquals(trans4.id, actual.rows[1].id)
+            assertEquals(2, actual.totalRows)
+            assertEquals(1, actual.pagesCount)
+        }
+    }
+
+    @Test
+    fun `list transactions by date range`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(4000)
+        )
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(2000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            date = SearchCriteriaTransactionDto.RangeDto(
+                LocalDateTime.now().minusHours(1), LocalDateTime.now().plusHours(1)
+            )
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(200)
+            val response = contentType(MediaType.APPLICATION_JSON_VALUE)
+                .extract()
+                .response()
+                .asString()
+            val actual = objectMapper.readValue<TransactionListDto>(response)
+            assertEquals(4, actual.rows.size)
+            assertEquals(4, actual.totalRows)
+            assertEquals(1, actual.pagesCount)
+        }
+    }
+
+    @Test
+    fun `sort by unsupported field should return 400 status`() {
+        val firstAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(10000))
+        val secondAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        val thirdAccount = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(30000))
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = secondAccount.id!!, type = TransactionType.PAY,
+            BigInteger.valueOf(3000)
+        )
+        integrationTestUtils.createAndSaveTransaction(
+            receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
+            BigInteger.valueOf(5000)
+        )
+        val command = SearchCriteriaTransactionDto(
+            sortBy = SearchCriteriaTransactionDto.SortDto("receiverId", "ASC")
+        )
+        Given {
+            contentType(MediaType.APPLICATION_JSON_VALUE)
+            body(command)
+        } When {
+            post("/api/v1/transaction/list")
+        } Then {
+            statusCode(400)
+        }
+    }
 
 }

@@ -1,0 +1,26 @@
+version: "3.8"
+services:
+  db:
+    image: postgres:13.1-alpine
+    restart: unless-stopped
+    env_file: ./.env
+    environment:
+      - POSTGRES_USER=$DATASOURCE_USERNAME
+      - POSTGRES_PASSWORD=$DATASOURCE_PASSWORD
+      - POSTGRES_DB=$DATABASE_NAME
+    ports:
+      - $DB_OUTER_PORT:$DB_INNER_PORT
+  app:
+    image: vaomaohao/bsf-task:latest
+    depends_on:
+      - db
+    build: .
+    restart: on-failure
+    env_file: ./.env
+    ports:
+      - $CLIENT_PORT:$SERVER_PORT
+    environment:
+      - SERVER_PORT=$SERVER_PORT
+      - DATASOURCE_URL=jdbc:postgresql://db:$DB_INNER_PORT/$DATABASE_NAME?currentSchema=bsf
+      - DATASOURCE_USERNAME=$DATASOURCE_USERNAME
+      - DATASOURCE_PASSWORD=$DATASOURCE_PASSWORD

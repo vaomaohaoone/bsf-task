@@ -7,8 +7,10 @@ plugins {
 }
 
 version = "final"
+
 val mapstructVersion = "1.5.2.Final"
 val restAssured: String = "4.2.0"
+val log4jVersion: String = "2.17.2"
 
 dependencies {
 
@@ -18,6 +20,9 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-log4j2")
+    implementation("org.apache.logging.log4j:log4j-api-kotlin:1.0.0")
+    implementation("com.lmax:disruptor:3.4.2")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     runtimeOnly("org.postgresql:postgresql")
     implementation("org.flywaydb:flyway-core")
@@ -38,6 +43,13 @@ dependencies {
     testImplementation("io.rest-assured:kotlin-extensions:$restAssured")
     testImplementation("io.rest-assured:spring-mock-mvc:$restAssured")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}
+
+configurations {
+    all {
+        exclude(group = "org.springframework.boot", module = "spring-boot-starter-logging")
+        exclude(group = "org.junit.vintage", module = "junit-vintage-engine")
+    }
 }
 
 tasks {

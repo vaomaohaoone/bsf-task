@@ -9,13 +9,13 @@ import javax.validation.constraints.Min
 
 @ApiModel("Transaction create dto")
 data class TransactionCreateDto(
-    @ApiModelProperty("receiver id", required = true)
+    @ApiModelProperty("Receiver id", required = true)
     val receiverId: UUID,
-    @ApiModelProperty("sender id", required = true)
+    @ApiModelProperty("Sender id", required = true)
     val senderId: UUID,
-    @ApiModelProperty("transaction type", required = true, allowableValues = "PAY, WITHDRAW, CONTRIBUTION")
+    @ApiModelProperty("Transaction type", required = true, allowableValues = "PAY, WITHDRAW, CONTRIBUTION")
     val type: TransactionType,
-    @ApiModelProperty("transaction sum", required = true)
+    @ApiModelProperty("Transaction sum (with kopecks)", required = true)
     @field:Min(value = 0)
     val sum: BigInteger
 )

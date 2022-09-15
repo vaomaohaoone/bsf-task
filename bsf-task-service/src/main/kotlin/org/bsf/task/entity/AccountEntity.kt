@@ -2,7 +2,6 @@ package org.bsf.task.entity
 
 import java.math.BigInteger
 import java.util.*
-import java.util.Collections.emptyList
 import javax.persistence.*
 
 @Entity
@@ -18,9 +17,5 @@ data class AccountEntity(
     @Column(name = "user_id")
     var userId: String? = null,
     @Column(name = "is_deleted")
-    var isDeleted: Boolean = false,
-    @OneToMany(mappedBy = "receiver")
-    var receiverHistory: List<TransactionEntity> = mutableListOf(),
-    @OneToMany(mappedBy = "sender")
-    var senderHistory: List<TransactionEntity> = mutableListOf()
+    var isDeleted: Boolean = false
 )

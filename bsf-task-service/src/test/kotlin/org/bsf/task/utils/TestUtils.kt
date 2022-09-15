@@ -4,11 +4,9 @@ import org.apache.commons.lang3.RandomStringUtils
 import org.bsf.task.dto.AccountCreateDto
 import org.bsf.task.dto.TransactionCreateDto
 import org.bsf.task.enums.TransactionType
-import org.springframework.stereotype.Component
 import java.math.BigInteger
 import java.util.*
 
-@Component
 class TestUtils {
 
     companion object {

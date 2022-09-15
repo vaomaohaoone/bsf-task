@@ -1,5 +1,6 @@
 package org.bsf.task.controller.handler
 
+import org.apache.logging.log4j.kotlin.Logging
 import org.bsf.task.dto.ErrorResponseDto
 import org.bsf.task.exception.BsfBusinessException
 import org.bsf.task.exception.EntityDeletedException
@@ -18,6 +19,7 @@ class ExceptionHandler {
     @ExceptionHandler(EntityNotFoundException::class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     fun handleNotFoundException(request: HttpServletRequest, exception: EntityNotFoundException): ErrorResponseDto {
+        logger.info(exception.message!!)
         return ErrorResponseDto(exception.message!!)
     }
 
@@ -27,7 +29,8 @@ class ExceptionHandler {
         request: HttpServletRequest,
         exception: BsfBusinessException
     ): ErrorResponseDto {
-        return ErrorResponseDto(exception.message!!)
+        logger.info(exception.message!!)
+        return ErrorResponseDto(exception.message)
     }
 
     @ExceptionHandler(EntityDeletedException::class)
@@ -35,6 +38,7 @@ class ExceptionHandler {
         request: HttpServletRequest,
         exception: EntityDeletedException
     ): ResponseEntity<Any> {
+        logger.info(exception.message!!)
         return ResponseEntity.noContent().build()
     }
 
@@ -44,6 +48,7 @@ class ExceptionHandler {
         request: HttpServletRequest,
         exception: MethodArgumentNotValidException
     ): ErrorResponseDto {
+        logger.info(exception.message)
         return ErrorResponseDto(exception.message)
     }
 
@@ -53,7 +58,10 @@ class ExceptionHandler {
         request: HttpServletRequest,
         exception: Exception
     ): ErrorResponseDto {
+        logger.error(exception.message!!)
         return ErrorResponseDto(exception.message!!)
     }
+
+    companion object : Logging
 
 }
