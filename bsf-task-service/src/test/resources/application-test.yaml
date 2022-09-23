@@ -3,6 +3,7 @@ spring:
     url: jdbc:h2:mem:testdb
     schema: classpath:schema.sql
     driver-class-name: org.h2.Driver
+    initialization-mode: embedded
   jpa:
     database: postgresql
     open-in-view: false

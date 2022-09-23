@@ -10,6 +10,9 @@ data class AccountEntity(
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     var id: UUID? = null,
+    @Version
+    @Column(name = "version")
+    var version: Long? = null,
     @Column(name = "name")
     var accountName: String? = null,
     @Column(name = "balance_sum")

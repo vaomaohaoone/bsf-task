@@ -17,7 +17,7 @@ class TransactionController(
         transactionService.listTransactions(searchCriteria)
 
     override fun createTransaction(dto: TransactionCreateDto): TransactionDto =
-        transactionService.createTransactionAndGetResponse(dto)
+        transactionService.createTransaction(dto.senderId, dto.receiverId, dto.sum, dto.type)
 
     override fun getTransactionById(transactionId: UUID): TransactionDto =
         transactionService.getTransactionById(transactionId)

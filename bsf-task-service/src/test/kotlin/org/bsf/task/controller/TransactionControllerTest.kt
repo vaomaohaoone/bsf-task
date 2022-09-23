@@ -8,6 +8,7 @@ import org.bsf.task.AbstractIntegrationTest
 import org.bsf.task.dto.SearchCriteriaTransactionDto
 import org.bsf.task.dto.TransactionDto
 import org.bsf.task.dto.TransactionListDto
+import org.bsf.task.entity.AccountEntity
 import org.bsf.task.enums.TransactionType
 import org.bsf.task.utils.TestUtils.Companion.createTransactionCreateDto
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import java.math.BigInteger
 import java.time.LocalDateTime
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Executors
 
 internal class TransactionControllerTest : AbstractIntegrationTest() {
 
@@ -92,7 +95,7 @@ internal class TransactionControllerTest : AbstractIntegrationTest() {
             receiverId = firstAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
             BigInteger.valueOf(4000)
         )
-        val trans4 =integrationTestUtils.createAndSaveTransaction(
+        val trans4 = integrationTestUtils.createAndSaveTransaction(
             receiverId = secondAccount.id!!, senderId = thirdAccount.id!!, type = TransactionType.WITHDRAW,
             BigInteger.valueOf(2000)
         )
@@ -336,6 +339,47 @@ internal class TransactionControllerTest : AbstractIntegrationTest() {
         } Then {
             statusCode(400)
         }
+    }
+
+    @Test
+    fun `try parallel`() {
+        val receiver = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(0))
+        val sender = integrationTestUtils.createAndSaveAccount(BigInteger.valueOf(20000))
+        launchParallel(receiver, sender, 100)
+        val allTrans = transactionRepository.findAll()
+        assertEquals(1, allTrans.size)
+        assertEquals(BigInteger.valueOf(20000), allTrans[0].sum)
+        assertEquals(BigInteger.ZERO, accountRepository.findById(sender.id!!).get().balanceSum)
+        assertEquals(BigInteger.valueOf(20000), accountRepository.findById(receiver.id!!).get().balanceSum)
+    }
+
+    fun launchParallel(receiver: AccountEntity, sender: AccountEntity, count: Int) {
+        val countOfThreads = 100
+        val service = Executors.newFixedThreadPool(10);
+        val latch = CountDownLatch(countOfThreads);
+        var i = 0
+        while (i < countOfThreads) {
+            service.submit {
+                val command =
+                    createTransactionCreateDto(
+                        receiver.id!!,
+                        sender.id!!,
+                        TransactionType.WITHDRAW,
+                        BigInteger.valueOf(20000)
+                    )
+                Given {
+                    contentType(MediaType.APPLICATION_JSON_VALUE)
+                    body(command)
+                } When {
+                    post("/api/v1/transaction")
+                } Then {
+
+                }
+                latch.countDown()
+            }
+            i++
+        }
+        latch.await()
     }
 
 }
